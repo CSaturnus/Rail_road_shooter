@@ -114,7 +114,7 @@ class enemyShip1:
         self.animationSpeed = 5  # Adjust this value to control the animation speed
         self.animationTimer = 0
         self.sine_wave_amplitude = random.randint(50, 200)
-        self.sine_wave_frequency = random.uniform(0.01, 0.05)
+        self.sine_wave_frequency = random.uniform(0.01, 0.02)
         self.initial_x = posx
         self.hp = hp
 
@@ -280,9 +280,10 @@ def gameplay():
         elif len(enemies_2) == 1:
             spawn_2 = FPS * 10
             Laser_counter += 1
-            
         
-        if Laser_counter*random.random() > 50 and len(enemies_2) > 0:
+        
+        
+        if Laser_counter*random.random() > 50 and len(enemies_2) > 0 or len(enemies_2) > 0 and enemies_2[0].posx < 90 or len(enemies_2) > 0 and enemies_2[0].posx > WIDTH-145:
             enemy_laser.append(Laser2(enemies_2[0].posx + 25, enemies_2[0].posy + 50, 5, 19, 10))
             Laser_counter = 0
 
@@ -323,7 +324,6 @@ def gameplay():
         for laser in Big_laser_coll:
             laser.move(Starship.posx + 2, Starship.posy - 50)
             Big_laser_counter += 1
-            print(Big_laser_counter)
             if Big_laser_counter > FPS*2:
                 Big_laser_coll.remove(laser)
                 Big_laser_counter = 0
@@ -403,7 +403,6 @@ def gameplay():
             laser.display()
         
         Run_score += 1
-        print(Run_score//60)
         #print clock in terminal for debugging
 
         #updating diplay
@@ -439,7 +438,6 @@ def Menu():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN and button_rect.collidepoint(mouse_pos):
-                print("Button clicked!")
                 gameplay()
                 mouse_pos = (0, 0)
                 Tutorialtimer = 0
@@ -503,11 +501,8 @@ def Menu():
         if Tutorialtimer == FPS*18:
             Big_laser_coll.clear()
             Tutorialtimer = 0
-        
 
         Tutorialtimer += 1
-        print(Tutorialtimer)
-        
 
         screen.blit(get_sprite(Button_sprite_sheet, 0, 0, 50, 50), ((WIDTH-550), 150)) #W
         screen.blit(get_sprite(Button_sprite_sheet, 50, 0, 50, 50), ((WIDTH-620), 220)) #A
