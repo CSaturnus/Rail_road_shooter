@@ -426,7 +426,6 @@ def Menu():
 
 
         screen.blit(Panel, (0, 0))
-        screen.blit(tutWindow, (400, 0))
         pygame.draw.rect(screen, (176,154,98), button_rect_shadow)
         pygame.draw.rect(screen, (212,204,185), button_rect)
         if button_rect.collidepoint(mouse_pos):
@@ -478,6 +477,7 @@ def Menu():
         if Tutorialtimer == FPS*18:
             Big_laser_coll.clear()
             Tutorialtimer = 0
+        
 
         Tutorialtimer += 1
         print(Tutorialtimer)
@@ -500,6 +500,8 @@ def Menu():
 
         for laser in Big_laser_coll:
             laser.display()
+
+        screen.blit(tutWindow, (400, 0))
 
         Starship.display()
         pygame.display.update()
