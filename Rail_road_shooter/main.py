@@ -4,9 +4,6 @@ import random
 import sys
 import asyncio
 
-import tracemalloc
-tracemalloc.start()
-
 pygame.init()
 pygame.mixer.init()
 
