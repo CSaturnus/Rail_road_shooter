@@ -2,6 +2,10 @@ import pygame
 import math
 import random
 import sys
+import asyncio
+
+import tracemalloc
+tracemalloc.start()
 
 pygame.init()
 pygame.mixer.init()
@@ -196,7 +200,7 @@ class Laser2:
         pygame.draw.rect(screen, WHITE, self.rect)
         screen.blit(Laser_sprite2, self.rect)
 
-def gameplay():
+async def gameplay():
     running = True
     global Highscore
 
@@ -224,6 +228,7 @@ def gameplay():
 
     while running:
         clock.tick(FPS)
+        await asyncio.sleep(0)
         screen.fill(BLACK)
 
         for event in pygame.event.get():
@@ -408,7 +413,7 @@ def gameplay():
         #updating diplay
         pygame.display.update()
 
-def Menu():
+async def main():
     running = True
 
     global Highscore
@@ -430,6 +435,7 @@ def Menu():
 
     while running:
         clock.tick(FPS)
+        await asyncio.sleep(0)
         screen.fill(BLACK)
         mouse_pos = pygame.mouse.get_pos()
 
@@ -439,7 +445,7 @@ def Menu():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN and button_rect.collidepoint(mouse_pos):
-                gameplay()
+                await gameplay()
                 mouse_pos = (0, 0)
                 Tutorialtimer = 0
 
@@ -527,6 +533,5 @@ def Menu():
 
         Starship.display()
         pygame.display.update()
-if __name__ == "__main__":
-    Menu()
-    pygame.quit()
+
+asyncio.run(main())
