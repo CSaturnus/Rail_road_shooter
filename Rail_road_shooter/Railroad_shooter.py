@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+import sys
 
 pygame.init()
 pygame.mixer.init()
@@ -17,8 +18,13 @@ Big_laser_sprite = pygame.image.load('Assets/sprites/Big_laser.png')
 Enemy_1 = pygame.image.load('Assets/sprites/Starship_3.png')
 Enemy_2 = pygame.image.load('Assets/sprites/Starship_2.png')
 
-Panel = pygame.image.load('Assets/sprites/Wood_panel.png')
+Panel = pygame.image.load('Assets/sprites/Panel_2.png')
 Ammo_bar = pygame.image.load('Assets/sprites/Ammo_bar.png')
+
+font50 = pygame.font.Font('Assets/fonts/SuperPencil-ARGw7.ttf', 78)
+tutWindow = pygame.image.load('Assets/sprites/Tutorial_windows.png')
+
+Button_sprite_sheet = pygame.image.load('Assets/sprites/Button_sprite.png')
 
 # RGB values of standard colors
 BLACK = (0, 0, 0)
@@ -93,7 +99,7 @@ class Big_laser:
         screen.blit(Big_laser_sprite, self.rect)
 
 class enemyShip1:
-    def __init__(self, posx, posy, speed):
+    def __init__(self, posx, posy, speed, hp):
         self.posx = posx
         self.posy = posy
         self.width = 50
@@ -106,6 +112,7 @@ class enemyShip1:
         self.sine_wave_amplitude = random.randint(50, 150)
         self.sine_wave_frequency = random.uniform(0.01, 0.05)
         self.initial_x = posx
+        self.hp = hp
 
     def move(self):
         self.posy += self.speed
@@ -205,6 +212,8 @@ def gameplay():
     build_up_timer = 0
     spawn_2 = FPS * 7
     Big_laser_charge = 0
+    Difficulty_timer = 0
+    enemy_hp = 1
 
     while running:
         clock.tick(FPS)
@@ -213,6 +222,8 @@ def gameplay():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.KEYDOWN:  # Key pressed
                 if event.key == pygame.K_l and Big_laser_charge == FPS*20:
                     Big_laser_charge = 0
@@ -268,6 +279,11 @@ def gameplay():
             enemy_laser.append(Laser2(enemies_2[0].posx + 25, enemies_2[0].posy + 50, 5, 19, 10))
             Laser_counter = 0
 
+        Difficulty_timer += 1
+        if Difficulty_timer > 15*FPS:
+            Difficulty_timer = 0
+            enemy_hp += 1
+
         if len(enemies_1) < 20 and int(Enemy_1_timer) > 20:
             spawn_enemy = True
             while spawn_enemy:
@@ -279,7 +295,7 @@ def gameplay():
                     if new_enemy_rect.colliderect(enemy.rect):
                         spawn_enemy = True
                         break
-            enemies_1.append(enemyShip1(new_enemy_1_posx, new_enemy_1_posy, random.random()*5))
+            enemies_1.append(enemyShip1(new_enemy_1_posx, new_enemy_1_posy, random.random()*5, enemy_hp))
             Enemy_1_timer = 0
             build_up_timer += 0.002
 
@@ -321,7 +337,9 @@ def gameplay():
             for enemy in enemies_1:
                 if bullet.rect.colliderect(enemy.rect):
                     bullets.remove(bullet)
-                    enemies_1.remove(enemy)
+                    enemy.hp -= 1
+                    if enemy.hp == 0:
+                        enemies_1.remove(enemy)
                     break
             for enemy_2 in enemies_2:
                 if bullet.rect.colliderect(enemy_2.rect):
@@ -376,7 +394,115 @@ def gameplay():
         #updating diplay
         pygame.display.update()
 
+def Menu():
+    running = True
+    button_rect = pygame.Rect(70, 100, 260, 100)
+    button_rect_shadow = pygame.Rect(60, 90, 280, 120)
+    mouse_pos = (0, 0)
+    Starship = Ship((WIDTH-400), HEIGHT/1.5, 78, 62)
+    Tutorialtimer = 0
+    tutorialHighlight = pygame.Rect(0, 0, 0, 0)
+    bullets = []
+    Big_laser_coll = []
+    gun_change = False
+    initialFireRate = 30  # Initial fire rate (higher value means slower firing)
+    minFireRate = 2
+    gunTimer = 0
+
+    while running:
+        screen.fill(BLACK)
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN and button_rect.collidepoint(mouse_pos):
+                print("Button clicked!")
+                gameplay()
+                mouse_pos = (0, 0)
+                Tutorialtimer = 0
+
+
+        screen.blit(Panel, (0, 0))
+        screen.blit(tutWindow, (400, 0))
+        pygame.draw.rect(screen, (176,154,98), button_rect_shadow)
+        pygame.draw.rect(screen, (212,204,185), button_rect)
+        if button_rect.collidepoint(mouse_pos):
+            text = font50.render('START!', True, (119,136,153))
+        else:
+            text = font50.render('START!', True, BLACK)
+        textRect = text.get_rect(center=button_rect.center)
+        screen.blit(text, textRect)
+
+        if Tutorialtimer >= FPS*2 and Tutorialtimer < FPS*4:
+            tutorialHighlight = pygame.Rect(WIDTH-625, 215, 60, 60)
+            pygame.draw.rect(screen, RED, tutorialHighlight)
+            Starship.posx -= 1.5
+        if Tutorialtimer >= FPS*4 and Tutorialtimer < FPS*8:
+            tutorialHighlight = pygame.Rect(WIDTH-485, 215, 60, 60)
+            pygame.draw.rect(screen, RED, tutorialHighlight)
+            Starship.posx += 1.5
+        if Tutorialtimer >= FPS*8 and Tutorialtimer < FPS*10:
+            tutorialHighlight = pygame.Rect(WIDTH-625, 215, 60, 60)
+            pygame.draw.rect(screen, RED, tutorialHighlight)
+            Starship.posx -= 1.5
+        if Tutorialtimer >= FPS*10 and Tutorialtimer < FPS*12:
+            tutorialHighlight = pygame.Rect(WIDTH-555, 145, 60, 60)
+            pygame.draw.rect(screen, RED, tutorialHighlight)
+            Starship.posy -= 1.5
+        if Tutorialtimer >= FPS*12 and Tutorialtimer < FPS*14:
+            tutorialHighlight = pygame.Rect(WIDTH-555, 215, 60, 60)
+            pygame.draw.rect(screen, RED, tutorialHighlight)
+            Starship.posy += 1.5
+        if Tutorialtimer >= FPS*14 and Tutorialtimer < FPS*16:
+            tutorialHighlight = pygame.Rect(WIDTH-305, 215, 60, 60)
+            pygame.draw.rect(screen, RED, tutorialHighlight)
+            gunTimer += 1
+            fireRate = max(minFireRate, initialFireRate * math.exp(-0.025 * gunTimer))
+            if gunTimer % int(fireRate) == 0:
+                if gun_change == False:
+                    bullets.append(Bullet(Starship.posx + 69, Starship.posy + 10, 5, 19, 10))
+                    gun_change = True
+                    Starship.ammo -= 1
+                else:
+                    bullets.append(Bullet(Starship.posx + 4, Starship.posy + 10, 5, 19, 10))
+                    gun_change = False
+                    Starship.ammo -= 1
+        if Tutorialtimer >= FPS*17 and Tutorialtimer < FPS*18:
+            gunTimer = 0
+            tutorialHighlight = pygame.Rect(WIDTH-205, 215, 60, 60)
+            pygame.draw.rect(screen, RED, tutorialHighlight)
+            Big_laser_coll.append(Big_laser(Starship.posx + 2, Starship.posy-778, 74, 800))
+        if Tutorialtimer == FPS*18:
+            Big_laser_coll.clear()
+            Tutorialtimer = 0
+
+        Tutorialtimer += 1
+        print(Tutorialtimer)
+        
+
+        screen.blit(get_sprite(Button_sprite_sheet, 0, 0, 50, 50), ((WIDTH-550), 150)) #W
+        screen.blit(get_sprite(Button_sprite_sheet, 50, 0, 50, 50), ((WIDTH-620), 220)) #A
+        screen.blit(get_sprite(Button_sprite_sheet, 100, 0, 50, 50), ((WIDTH-550), 220)) #S
+        screen.blit(get_sprite(Button_sprite_sheet, 150, 0, 50, 50), ((WIDTH-480), 220)) #D
+
+        screen.blit(get_sprite(Button_sprite_sheet, 200, 0, 50, 50), ((WIDTH-300), 220)) #J
+        screen.blit(get_sprite(Button_sprite_sheet, 250, 0, 50, 50), ((WIDTH-200), 220)) #L
+
+        for bullet in bullets:
+            bullet.move()
+            if bullet.posy < 40:
+                bullets.remove(bullet)
+        for bullet in bullets:
+            bullet.display()
+
+        for laser in Big_laser_coll:
+            laser.display()
+
+        Starship.display()
+        pygame.display.update()
 if __name__ == "__main__":
-    print(Starship_1)
-    gameplay()
+    Menu()
     pygame.quit()
