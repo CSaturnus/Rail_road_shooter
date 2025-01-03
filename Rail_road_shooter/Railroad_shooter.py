@@ -22,6 +22,8 @@ Panel = pygame.image.load('Assets/sprites/Panel_2.png')
 Ammo_bar = pygame.image.load('Assets/sprites/Ammo_bar.png')
 
 font50 = pygame.font.Font('Assets/fonts/SuperPencil-ARGw7.ttf', 78)
+
+font25 = pygame.font.Font('Assets/fonts/SuperPencil-ARGw7.ttf', 40)
 tutWindow = pygame.image.load('Assets/sprites/Tutorial_windows.png')
 
 Button_sprite_sheet = pygame.image.load('Assets/sprites/Button_sprite.png')
@@ -39,6 +41,8 @@ pygame.display.set_caption("space_shooter")
 
 clock = pygame.time.Clock() 
 FPS = 60
+
+Highscore = 0
 
 def get_sprite(sheet, x, y, width, height):
     sprite = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -109,7 +113,7 @@ class enemyShip1:
         self.spriteCounter = 0
         self.animationSpeed = 5  # Adjust this value to control the animation speed
         self.animationTimer = 0
-        self.sine_wave_amplitude = random.randint(50, 150)
+        self.sine_wave_amplitude = random.randint(50, 200)
         self.sine_wave_frequency = random.uniform(0.01, 0.05)
         self.initial_x = posx
         self.hp = hp
@@ -194,6 +198,7 @@ class Laser2:
 
 def gameplay():
     running = True
+    global Highscore
 
     #INitializing the starship and the bullets
     Starship = Ship(WIDTH/2, HEIGHT/2, 78, 62)    
@@ -214,6 +219,8 @@ def gameplay():
     Big_laser_charge = 0
     Difficulty_timer = 0
     enemy_hp = 1
+
+    Run_score = 0
 
     while running:
         clock.tick(FPS)
@@ -351,12 +358,18 @@ def gameplay():
         
         for enemy in enemies_1:
             if enemy.rect.colliderect(Starship.ShipRect):
+                if Run_score > Highscore:
+                    Highscore = Run_score
                 running = False
         for enemy in enemies_2:
             if enemy.rect.colliderect(Starship.ShipRect):
+                if Run_score > Highscore:
+                    Highscore = Run_score
                 running = False
         for laser in enemy_laser:
             if laser.rect.colliderect(Starship.ShipRect):
+                if Run_score > Highscore:
+                    Highscore = Run_score
                 running = False
 
         # Drawing the enemies
@@ -389,6 +402,8 @@ def gameplay():
         for laser in Big_laser_coll:
             laser.display()
         
+        Run_score += 1
+        print(Run_score//60)
         #print clock in terminal for debugging
 
         #updating diplay
@@ -396,8 +411,13 @@ def gameplay():
 
 def Menu():
     running = True
+
+    global Highscore
     button_rect = pygame.Rect(70, 100, 260, 100)
     button_rect_shadow = pygame.Rect(60, 90, 280, 120)
+
+    Score_box = pygame.Rect(70, 300, 260, 100)
+
     mouse_pos = (0, 0)
     Starship = Ship((WIDTH-400), HEIGHT/1.5, 78, 62)
     Tutorialtimer = 0
@@ -434,6 +454,12 @@ def Menu():
             text = font50.render('START!', True, BLACK)
         textRect = text.get_rect(center=button_rect.center)
         screen.blit(text, textRect)
+
+        minutes = (Highscore // (FPS * 60))  # Total seconds divided by 60
+        seconds = (Highscore // FPS) % 60   # Remaining seconds
+        score = font25.render(f'Score: {minutes}:{seconds:02}', True, BLACK)
+        scoreRect = score.get_rect(center=Score_box.center)
+        screen.blit(score, scoreRect)
 
         if Tutorialtimer >= FPS*2 and Tutorialtimer < FPS*4:
             tutorialHighlight = pygame.Rect(WIDTH-625, 215, 60, 60)
