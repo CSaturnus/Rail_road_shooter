@@ -429,6 +429,7 @@ def Menu():
     gunTimer = 0
 
     while running:
+        clock.tick(FPS)
         screen.fill(BLACK)
         mouse_pos = pygame.mouse.get_pos()
 
