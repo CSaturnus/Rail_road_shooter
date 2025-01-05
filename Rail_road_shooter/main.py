@@ -29,6 +29,9 @@ tutWindow = pygame.image.load('Assets/sprites/Tutorial_windows.png')
 
 Button_sprite_sheet = pygame.image.load('Assets/sprites/Button_sprite.png')
 
+Laser_sound =  pygame.mixer.Sound('Assets/soundEffect/Sound_laser.ogg')
+Big_Laser_sound =  pygame.mixer.Sound('Assets/soundEffect/Zaper.ogg')
+
 # RGB values of standard colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -201,6 +204,11 @@ async def gameplay():
     running = True
     global Highscore
 
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load('Assets/music/Alien_music.ogg')
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.6)
+
     #INitializing the starship and the bullets
     Starship = Ship(WIDTH/2, HEIGHT/2, 78, 62)    
     bullets = []
@@ -237,6 +245,8 @@ async def gameplay():
                 if event.key == pygame.K_l and Big_laser_charge == FPS*20:
                     Big_laser_charge = 0
                     Big_laser_coll.append(Big_laser(Starship.posx + 2, Starship.posy, 74, 800))
+                    pygame.mixer.Sound.set_volume(Big_Laser_sound, 0.5)
+                    pygame.mixer.Sound.play(Big_Laser_sound)
 
         if Big_laser_charge < FPS*20:
             Big_laser_charge += 1
@@ -430,6 +440,11 @@ async def main():
     minFireRate = 2
     gunTimer = 0
 
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load('Assets/music/Title_music.ogg')
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.5)
+
     while running:
         clock.tick(FPS)
         await asyncio.sleep(0)
@@ -445,6 +460,10 @@ async def main():
                 await gameplay()
                 mouse_pos = (0, 0)
                 Tutorialtimer = 0
+                pygame.mixer.music.stop()
+                pygame.mixer.music.load('Assets/music/Title_music.ogg')
+                pygame.mixer.music.play(-1)
+                pygame.mixer.music.set_volume(0.5)
 
 
         screen.blit(Panel, (0, 0))
