@@ -228,7 +228,7 @@ async def gameplay():
     Big_laser_charge = 0
     Difficulty_timer = 0
     enemy_hp = 1
-
+    first_shot = True
     Run_score = 0
 
     while running:
@@ -262,20 +262,27 @@ async def gameplay():
         if keys[pygame.K_d] and Starship.posx < WIDTH - Starship.width - 95:
             Starship.posx += 5
         if keys[pygame.K_j] and Starship.ammo > 0 and ammoReload == True:
-            gunTimer += 1
-            fireRate = max(minFireRate, initialFireRate * math.exp(-0.025 * gunTimer))
-            if gunTimer % int(fireRate) == 0:
-                if gun_change == False:
-                    bullets.append(Bullet(Starship.posx + 69, Starship.posy + 10, 5, 19, 10))
-                    gun_change = True
-                    Starship.ammo -= 1
-                else:
-                    bullets.append(Bullet(Starship.posx + 4, Starship.posy + 10, 5, 19, 10))
-                    gun_change = False
-                    Starship.ammo -= 1
+            if first_shot:
+                bullets.append(Bullet(Starship.posx + 69 if gun_change == False else Starship.posx + 4, Starship.posy + 10, 5, 19, 10))
+                gun_change = not gun_change
+                Starship.ammo -= 1
+                first_shot = False
+            else:
+                gunTimer += 1
+                fireRate = max(minFireRate, initialFireRate * math.exp(-0.025 * gunTimer))
+                if gunTimer % int(fireRate) == 0:
+                    if gun_change == False:
+                        bullets.append(Bullet(Starship.posx + 69, Starship.posy + 10, 5, 19, 10))
+                        gun_change = True
+                        Starship.ammo -= 1
+                    else:
+                        bullets.append(Bullet(Starship.posx + 4, Starship.posy + 10, 5, 19, 10))
+                        gun_change = False
+                        Starship.ammo -= 1
         else:
             gunTimer = 0
             fireRate = initialFireRate  # Reset fire rate when the button is released
+            first_shot = True
 
         if Starship.ammo == 0 or ammoReload == False:
             ammoReload = False
