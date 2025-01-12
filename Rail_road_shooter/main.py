@@ -19,6 +19,11 @@ Big_laser_sprite = pygame.image.load('Assets/sprites/Big_laser.png')
 Enemy_1 = pygame.image.load('Assets/sprites/Starship_3.png')
 Enemy_2 = pygame.image.load('Assets/sprites/Starship_2.png')
 
+crab_sprite = pygame.image.load('Assets/sprites/Crab_boss.png')
+crab_laser = pygame.image.load('Assets/sprites/Laser_2.png')
+crab_missile = pygame.image.load('Assets/sprites/Missle.png')
+crab_big_laser = pygame.image.load('Assets/sprites/Enemy_laser.png')
+
 Panel = pygame.image.load('Assets/sprites/Panel_2.png')
 Ammo_bar = pygame.image.load('Assets/sprites/Ammo_bar.png')
 
@@ -183,6 +188,65 @@ class enemyShip2:
         self.ShipRect = pygame.Rect(self.posx, self.posy, self.width, self.height)
         screen.blit(sprite, self.ShipRect)
 
+class crab:
+    def __init__(self, posx, posy, speed):
+        self.posx = posx
+        self.posy = posy
+        self.width = 400
+        self.height = 204
+        self.rect = pygame.Rect(posx, posy, self.width, self.height)
+        self.spriteCounter = 0
+        self.hp = 300
+        self.speed = speed
+        self.direction = 1
+        self.hp = 200
+    def move(self):
+        if self.posy < -50:
+            self.posy += self.speed
+        if random.randint(0, 1000) > 995:
+            self.direction *= -1
+        if self.posx < 90:
+            self.direction *= -1
+        if self.posx > WIDTH - self.width-90:
+            self.direction *= -1
+        self.posx += self.speed * self.direction
+        self.rect.x = self.posx
+        self.rect.y = self.posy
+
+    def display(self):
+        sprite = get_sprite(crab_sprite, self.spriteCounter * self.width, 0, self.width, self.height)
+        self.crabRect = pygame.Rect(self.posx, self.posy, self.width, self.height)
+        screen.blit(sprite, self.crabRect)
+
+class crab_rocket:
+    def __init__(self, posx, posy):
+        self.initial_x = posx + 22
+        self.posx = self.initial_x
+        self.posy = posy + 150
+        self.width = 13
+        self.height = 39
+        self.speed = 10
+        self.rect = pygame.Rect(posx, posy, self.width, self.height)
+        self.rocket_timer = 0
+        self.sine_wave_amplitude = 80
+        self.sine_wave_frequency = 0.1
+
+    def move(self):
+        self.posy += self.speed * 1
+        if self.posy > 180:
+            self.speed = 2
+            self.rocket_timer += 1
+            self.posx = self.initial_x + self.sine_wave_amplitude * math.sin(self.sine_wave_frequency * self.rocket_timer)
+        if self.posx < 90:
+            self.posx = 90
+        elif self.posx > WIDTH - 90 - self.width:
+            self.posx = WIDTH - 90 - self.width
+
+    def display(self):
+        sprite = crab_missile
+        self.missileRect = pygame.Rect(self.posx, self.posy, self.width, self.height)
+        screen.blit(sprite, self.missileRect)
+
 class Laser2:
     def __init__(self, posx, posy, width, height, speed):
         self.posx = posx
@@ -200,6 +264,21 @@ class Laser2:
         pygame.draw.rect(screen, WHITE, self.rect)
         screen.blit(Laser_sprite2, self.rect)
 
+class Big_crab_laser:
+    def __init__(self, posx, posy):
+        self.posx = posx
+        self.posy = posy
+        self.width = 14
+        self.height = 800
+        self.rect = pygame.Rect(posx, posy, self.width, self.height)
+    def move(self, posx, posy):
+        self.posx = posx
+        self.posy = posy
+    def display(self):
+        pygame.draw.rect(screen, WHITE, self.rect)
+        self.crablaser = pygame.Rect(self.posx, self.posy, self.width, self.height)
+        screen.blit(crab_big_laser, self.crablaser)
+
 async def gameplay():
     running = True
     global Highscore
@@ -216,6 +295,9 @@ async def gameplay():
     enemies_1 = []
     enemies_2 = []
     Big_laser_coll = []
+    crab_rocket_list = []
+    crab_laser_list = []
+
     Big_laser_counter = 0
     gun_change = False
     initialFireRate = 30  # Initial fire rate (higher value means slower firing)
@@ -230,6 +312,11 @@ async def gameplay():
     enemy_hp = 1
     first_shot = True
     Run_score = 0
+    crab_timer = 0
+    Crab_flag = False
+    Crab_missile_timer = 0
+    Crab_laser_timer = 0
+    Crab_Big_laser_timer = 0
 
     while running:
         clock.tick(FPS)
@@ -289,42 +376,126 @@ async def gameplay():
             Starship.ammo += 1
             if Starship.ammo == 80:
                 ammoReload = True
+    
+        if crab_timer > FPS*40:
+            for enemy in enemies_1:
+                enemies_1.remove(enemy)
+            for enemy_2 in enemies_2:  
+                enemies_2.remove(enemy_2)
+            
+            if Crab_flag == False:
+                Crab = crab(WIDTH/2, -204, 2)
+            Crab_flag = True
 
-        Enemy_1_timer += 1 + build_up_timer
+            Crab.move()
 
-        spawn_2 -= 1
-        if len(enemies_2) < 1 and spawn_2 < 0:
-            spawn_enemy = True
-            enemies_2.append(enemyShip2(random.random() * 930 + 90, -50, 7))
-        elif len(enemies_2) == 1:
-            spawn_2 = FPS * 10
-            Laser_counter += 1
-        
-        
-        
-        if Laser_counter*random.random() > 50 and len(enemies_2) > 0 or len(enemies_2) > 0 and enemies_2[0].posx < 90 or len(enemies_2) > 0 and enemies_2[0].posx > WIDTH-145:
-            enemy_laser.append(Laser2(enemies_2[0].posx + 25, enemies_2[0].posy + 50, 5, 19, 10))
-            Laser_counter = 0
+            Crab_laser_timer += 1
+            if Crab_laser_timer > FPS*1:
+                crab_laser_list.append(Laser2(Crab.posx + 367, Crab.posy + 150, 5, 19, 10))
+                Crab_laser_timer = 0
 
-        Difficulty_timer += 1
-        if Difficulty_timer > 15*FPS:
-            Difficulty_timer = 0
-            enemy_hp += 1
+            Crab_missile_timer += 1
+            if Crab_missile_timer > FPS*2:
+                crab_rocket_list.append(crab_rocket(Crab.posx, Crab.posy))
+                Crab_missile_timer = 0
+            
+            Crab_Big_laser_timer += 0
+            if Crab_Big_laser_timer > 8*FPS:
+                Crabbiglaser = Big_crab_laser(Crab.posx + Crab.width/2 - 14/2, Crab.posy + Crab.height - 40)
+                Crabbiglaser.display()
 
-        if len(enemies_1) < 20 and int(Enemy_1_timer) > 20:
-            spawn_enemy = True
-            while spawn_enemy:
-                new_enemy_1_posx = random.random() * 930 + 90
-                new_enemy_1_posy = -50
-                new_enemy_rect = pygame.Rect(new_enemy_1_posx, new_enemy_1_posy, 50, 50)
-                spawn_enemy = False
-                for enemy in enemies_1:
-                    if new_enemy_rect.colliderect(enemy.rect):
-                        spawn_enemy = True
-                        break
-            enemies_1.append(enemyShip1(new_enemy_1_posx, new_enemy_1_posy, random.random()*5, enemy_hp))
-            Enemy_1_timer = 0
-            build_up_timer += 0.002
+            if Crab.rect.colliderect(Starship.ShipRect):
+                if Run_score > Highscore:
+                    Highscore = Run_score
+                running = False
+
+            for laser in crab_laser_list:
+                laser.move()
+                laser.display()
+                if laser.rect.colliderect(Starship.ShipRect):
+                    if Run_score > Highscore:
+                        Highscore = Run_score
+                    running = False
+                if laser.posy > laser.height + HEIGHT:
+                    crab_laser_list.remove(laser)
+
+            for rocket in crab_rocket_list:
+                rocket.move()
+                rocket.display()
+                if rocket.rect.colliderect(Starship.ShipRect):
+                    if Run_score > Highscore:
+                        Highscore = Run_score
+                    running = False
+                if rocket.posy > rocket.height + HEIGHT:
+                    crab_rocket_list.remove(rocket)
+            
+            Crab.display()
+
+            for bullet in bullets:
+                if bullet.rect.colliderect(Crab.rect):
+                        bullets.remove(bullet)
+                        Crab.hp -= 1
+                        if Crab.hp < 1:
+                            # Reset on boss death
+                            crab_timer = 0
+                            Crab_flag = False
+                            Crab_laser_timer = 0
+                            Crab_missile_timer = 0
+                            Crab_Big_laser_timer = 0
+                            del Crab
+                            break
+
+            for laser in Big_laser_coll:
+                if laser.rect.colliderect(Crab.rect):
+                        Crab.hp -= 1
+                        print(Crab.hp)
+                        if Crab.hp < 1:
+                            # Reset on boss death
+                            crab_timer = 0
+                            Crab_flag = False
+                            Crab_laser_timer = 0
+                            Crab_missile_timer = 0
+                            Crab_Big_laser_timer = 0
+                            del Crab
+                            break
+
+
+        else:
+            Enemy_1_timer += 1 + build_up_timer
+
+            spawn_2 -= 1
+            if len(enemies_2) < 1 and spawn_2 < 0:
+                spawn_enemy = True
+                enemies_2.append(enemyShip2(random.random() * 930 + 90, -50, 7))
+            elif len(enemies_2) == 1:
+                spawn_2 = FPS * 10
+                Laser_counter += 1
+            Run_score += 1
+            crab_timer += 1
+            
+            if Laser_counter*random.random() > 50 and len(enemies_2) > 0 or len(enemies_2) > 0 and enemies_2[0].posx < 90 or len(enemies_2) > 0 and enemies_2[0].posx > WIDTH-145:
+                enemy_laser.append(Laser2(enemies_2[0].posx + 25, enemies_2[0].posy + 50, 5, 19, 10))
+                Laser_counter = 0
+
+            Difficulty_timer += 1
+            if Difficulty_timer > 15*FPS:
+                Difficulty_timer = 0
+                enemy_hp += 1
+
+            if len(enemies_1) < 20 and int(Enemy_1_timer) > 20:
+                spawn_enemy = True
+                while spawn_enemy:
+                    new_enemy_1_posx = random.random() * 930 + 90
+                    new_enemy_1_posy = -50
+                    new_enemy_rect = pygame.Rect(new_enemy_1_posx, new_enemy_1_posy, 50, 50)
+                    spawn_enemy = False
+                    for enemy in enemies_1:
+                        if new_enemy_rect.colliderect(enemy.rect):
+                            spawn_enemy = True
+                            break
+                enemies_1.append(enemyShip1(new_enemy_1_posx, new_enemy_1_posy, random.random()*5, enemy_hp))
+                Enemy_1_timer = 0
+                build_up_timer += 0.002
 
         for enemy in enemies_2:
             enemy.move()
@@ -364,14 +535,14 @@ async def gameplay():
                 if bullet.rect.colliderect(enemy.rect):
                     bullets.remove(bullet)
                     enemy.hp -= 1
-                    if enemy.hp == 0:
+                    if enemy.hp < 1:
                         enemies_1.remove(enemy)
                     break
             for enemy_2 in enemies_2:
                 if bullet.rect.colliderect(enemy_2.rect):
                     bullets.remove(bullet)
                     enemy_2.hp -= 1
-                    if enemy_2.hp == 0:
+                    if enemy_2.hp < 1:
                         enemies_2.remove(enemy_2)
                     break
         
@@ -421,7 +592,6 @@ async def gameplay():
         for laser in Big_laser_coll:
             laser.display()
         
-        Run_score += 1
         #print clock in terminal for debugging
 
         #updating diplay
