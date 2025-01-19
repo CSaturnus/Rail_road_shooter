@@ -641,6 +641,16 @@ async def main():
                 pygame.mixer.music.load('Assets/music/Title_music.ogg')
                 pygame.mixer.music.play(-1)
                 pygame.mixer.music.set_volume(0.5)
+            if event.type == pygame.KEYDOWN:  # Key pressed
+                if event.key == pygame.K_SPACE:
+                    await gameplay()
+                    mouse_pos = (0, 0)
+                    Tutorialtimer = 0
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load('Assets/music/Title_music.ogg')
+                    pygame.mixer.music.play(-1)
+                    pygame.mixer.music.set_volume(0.5)
+                    
 
 
         screen.blit(Panel, (0, 0))
