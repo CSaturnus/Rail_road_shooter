@@ -30,6 +30,8 @@ Ammo_bar = pygame.image.load('Assets/sprites/Ammo_bar.png')
 font50 = pygame.font.Font('Assets/fonts/SuperPencil-ARGw7.ttf', 78)
 
 font25 = pygame.font.Font('Assets/fonts/SuperPencil-ARGw7.ttf', 40)
+
+font10 = pygame.font.Font('Assets/fonts/SuperPencil-ARGw7.ttf', 25)
 tutWindow = pygame.image.load('Assets/sprites/Tutorial_windows.png')
 
 Button_sprite_sheet = pygame.image.load('Assets/sprites/Button_sprite.png')
@@ -606,6 +608,8 @@ async def main():
 
     Score_box = pygame.Rect(70, 300, 260, 100)
 
+    space_box = pygame.Rect(90, 250, 260, 100)
+
     mouse_pos = (0, 0)
     Starship = Ship((WIDTH-400), HEIGHT/1.5, 78, 62)
     Tutorialtimer = 0
@@ -662,6 +666,11 @@ async def main():
             text = font50.render('START!', True, BLACK)
         textRect = text.get_rect(center=button_rect.center)
         screen.blit(text, textRect)
+
+        space_to_start = font10.render("or Space to start", True, (119,136,153))
+        screen.blit(space_to_start, space_box)
+        
+
 
         minutes = (Highscore // (FPS * 60))  # Total seconds divided by 60
         seconds = (Highscore // FPS) % 60   # Remaining seconds
